@@ -30,6 +30,13 @@ public class CausalOperator<T> implements ObservableOperator<T, CausalMessage<T>
         return true;
     }
 
+    private Boolean checkDup(CausalMessage<T> m) {
+        for (CausalMessage<T> entry : queue)
+            if (entry.j == m.j && entry.v[m.j] == m.v[m.j])
+                return true;
+        return false;
+    }
+
     private CausalMessage<T> checkQueue() throws Exception{
         for (CausalMessage<T> entry : queue) {
             if (canDeliver(entry.j, entry.v))
@@ -61,7 +68,7 @@ public class CausalOperator<T> implements ObservableOperator<T, CausalMessage<T>
                         }
                     }
                 }
-                else queue.add(m);
+                else if (m.v[m.j] > seqNums[m.j] && !checkDup(m)) queue.add(m);
             }
 
             @Override
@@ -71,7 +78,9 @@ public class CausalOperator<T> implements ObservableOperator<T, CausalMessage<T>
 
             @Override
             public void onComplete() {
-                down.onComplete(); // FIXME
+                if (!queue.isEmpty())
+                    onError(new IllegalArgumentException("gap detected"));
+                down.onComplete();
             }
         };
     }
