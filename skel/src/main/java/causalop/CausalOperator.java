@@ -5,7 +5,6 @@ import io.reactivex.rxjava3.core.ObservableOperator;
 import io.reactivex.rxjava3.core.Observer;
 import io.reactivex.rxjava3.observers.DisposableObserver;
 
-import javax.swing.*;
 import java.util.*;
 
 public class CausalOperator<T> implements ObservableOperator<T, CausalMessage<T>> {
@@ -16,7 +15,7 @@ public class CausalOperator<T> implements ObservableOperator<T, CausalMessage<T>
 
     public CausalOperator(int n) {
         this.n = n;
-        this.seqNums = new int[2];
+        this.seqNums = new int[n];
         Arrays.fill(this.seqNums, 0);
         this.queue = new ArrayList<>();
     }
@@ -24,7 +23,7 @@ public class CausalOperator<T> implements ObservableOperator<T, CausalMessage<T>
     private Boolean canDeliver(int j, int[] v) {
         if (v[j] != seqNums[j] + 1)
             return false;
-        for (int i = 0; i < seqNums.length; i++)
+        for (int i = 0; i < n; i++)
             if (i != j && v[i] > seqNums[i])
                 return false;
         return true;
@@ -47,7 +46,7 @@ public class CausalOperator<T> implements ObservableOperator<T, CausalMessage<T>
 
     @Override
     public @NonNull Observer<? super CausalMessage<T>> apply(@NonNull Observer<? super T> down) throws Throwable {
-        return new DisposableObserver<CausalMessage<T>>() {
+        return new DisposableObserver<>() {
             @Override
             public void onNext(@NonNull CausalMessage<T> m) {
                 if (canDeliver(m.j, m.v)) {
