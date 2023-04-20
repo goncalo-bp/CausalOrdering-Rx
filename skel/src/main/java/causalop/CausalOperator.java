@@ -20,18 +20,18 @@ public class CausalOperator<T> implements ObservableOperator<T, CausalMessage<T>
         this.queue = new ArrayList<>();
     }
 
-    private Boolean canDeliver(int j, int[] v) {
-        if (v[j] != seqNums[j] + 1)
+    private Boolean canDeliver(int j, Map<Integer,Integer> v) {
+        if (v.get(j) != seqNums[j] + 1)
             return false;
-        for (int i = 0; i < n; i++)
-            if (i != j && v[i] > seqNums[i])
+        for (Integer id : v.keySet())
+            if (id != j && v.get(id) > seqNums[id])
                 return false;
         return true;
     }
 
     private Boolean checkDup(CausalMessage<T> m) {
         for (CausalMessage<T> entry : queue)
-            if (entry.j == m.j && entry.v[m.j] == m.v[m.j])
+            if (entry.j == m.j && entry.v.get(m.j) == m.v.get(m.j))
                 return true;
         return false;
     }
@@ -67,7 +67,7 @@ public class CausalOperator<T> implements ObservableOperator<T, CausalMessage<T>
                         }
                     }
                 }
-                else if (m.v[m.j] > seqNums[m.j] && !checkDup(m)) queue.add(m);
+                else if (m.v.get(m.j) > seqNums[m.j] && !checkDup(m)) queue.add(m);
             }
 
             @Override
